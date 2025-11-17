@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin - OBOS Bøler Cup 2025</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 3em auto;
+      padding: 2em;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 2em;
+      margin-bottom: 2em;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    h1 {
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="login" class="card">
+      <h1>Admin Login</h1>
+      <input type="password" id="adminPassword" placeholder="Enter admin password" />
+      <button onclick="checkLogin()">Login</button>
+      <p id="loginError" style="color:red;"></p>
+    </div>
+
+    <div id="adminPanel" class="card" style="display:none;">
+      <h1>Admin Dashboard</h1>
+      <label>Beløp per kamp (NOK): <input type="number" id="matchRate" /></label>
+      <button onclick="saveRate()">Lagre sats</button>
+
+      <h2>Registrerte dommere</h2>
+      <table id="submissionsTable"></table>
+    </div>
+  </div>
+
+  <script>
+    const API = "https://script.google.com/macros/s/AKfycby8bFjL_opLF8SayL5eaCWGFfud9kc1SWHX0WsYnObcPngsUnSKj-Mx6NZ0lDLd6Jsl/exec";
+
+    function checkLogin() {
+      const password = document.getElementById("adminPassword").value;
+      if (password === "admin2025") {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+        loadSettings();
+        loadSubmissions();
+      } else {
+        document.getElementById("loginError").innerText = "Feil passord.";
+      }
+    }
+
+    function loadSettings() {
+      fetch(API + "?getSettings")
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("matchRate").value = data.matchRate;
+        });
+    }
+
+    function saveRate() {
+      const rate = document.getElementById("matchRate").value;
+      fetch(API, {
+        method: "PUT",
+        body: JSON.stringify({ matchRate: rate }),
+      })
+      .then(res => res.json())
+      .then(r => {
+        alert("Ny sats lagret");
+      });
+    }
+
+    function loadSubmissions() {
+      fetch(API)
+        .then(res => res.json())
+        .then((response) => {
+          const headers = response.headers;
+          const data = response.data;
+          const table = document.getElementById("submissionsTable");
+          const thead = "<thead><tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr></thead>";
+          const tbody = "<tbody>" + data.map(row =>
+            "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>"
+          ).join("") + "</tbody>";
+          table.innerHTML = thead + tbody;
+        });
+    }
+  </script>
+</body>
+</html>
